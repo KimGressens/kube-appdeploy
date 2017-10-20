@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/eapache/go-resiliency/retrier"
-	"github.com/rubenv/kube-appdeploy/kubectl"
+	"github.com/kimgressens/kube-appdeploy/kubectl"
 )
 
 var CleanTypes = []string{
@@ -111,13 +111,15 @@ type KubernetesTarget struct {
 	kubectl        *kubectl.KubeCtl
 	namespace      string
 	manageCronjobs bool
+	debug          bool
 }
 
 var _ Target = &KubernetesTarget{}
 
-func NewKubernetesTarget(config *rest.Config) *KubernetesTarget {
+func NewKubernetesTarget(config *rest.Config, debug bool) *KubernetesTarget {
 	return &KubernetesTarget{
 		config: config,
+		debug:  debug,
 	}
 }
 
@@ -131,7 +133,7 @@ func (t *KubernetesTarget) Prepare(vars *ProcessVariables) error {
 
 	// Copy some vars
 	t.namespace = vars.Namespace
-	t.kubectl = kubectl.NewKubeCtl(t.config, t.namespace)
+	t.kubectl = kubectl.NewKubeCtl(t.config, t.namespace, t.debug)
 	t.manageCronjobs = vars.ManageCronjobs
 
 	// Ensure we have the needed namespace

@@ -3,7 +3,9 @@ package kubectl
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os/exec"
+	"strings"
 
 	"k8s.io/client-go/rest"
 )
@@ -11,22 +13,29 @@ import (
 type KubeCtl struct {
 	config    *rest.Config
 	namespace string
+	debug     bool
 }
 
-func NewKubeCtl(config *rest.Config, namespace string) *KubeCtl {
+func NewKubeCtl(config *rest.Config, namespace string, debug bool) *KubeCtl {
 	return &KubeCtl{
 		config:    config,
 		namespace: namespace,
+		debug:     debug,
 	}
 }
 
 func (t *KubeCtl) Run(stdin []byte, args ...string) (string, error) {
 	args = append(t.configArgs(), args...)
+	if t.debug {
+		log.Printf("-----KUBECTL DEBUG-----\nkubectl %s\n%s\n", strings.Join(args, " "), string(stdin))
+	}
 
 	cmd := exec.Command("kubectl", args...)
+
 	if stdin != nil {
 		cmd.Stdin = bytes.NewReader(stdin)
 	}
+
 	out, err := cmd.Output()
 	if err != nil {
 		errmsg := err.Error()
@@ -35,6 +44,11 @@ func (t *KubeCtl) Run(stdin []byte, args ...string) (string, error) {
 			errmsg = fmt.Sprintf("%s: %s", errmsg, string(exiterr.Stderr))
 		}
 		return "", fmt.Errorf("Kubectl %v failed: %s, %s", args, errmsg, out)
+	}
+
+	sout := string(out)
+	if t.debug {
+		log.Printf("-----KUBECTL OUTPUT-----\n%s\n", sout)
 	}
 	return string(out), nil
 }

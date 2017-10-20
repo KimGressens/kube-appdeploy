@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/rubenv/kube-appdeploy"
+	"github.com/kimgressens/kube-appdeploy"
 )
 
 func main() {
@@ -94,7 +94,7 @@ func do() error {
 		},
 	}
 
-	target = appdeploy.NewKubernetesTarget(config)
+	target = appdeploy.NewKubernetesTarget(config, true)
 
 	return appdeploy.Process(src, target)
 }
